@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Směny — testovací koncepty</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0A0C12;
+    --paper:#EDEAE2;
+    --paper-dim:rgba(237,234,226,.6);
+    --paper-faint:rgba(237,234,226,.32);
+    --night-glow:#8FA8FF;
+    --day-1:#F2A93E;
+    --line:rgba(237,234,226,.14);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:
+      radial-gradient(1100px 700px at 12% -10%, #1a2140 0%, transparent 60%),
+      radial-gradient(900px 600px at 100% 110%, #241607 0%, transparent 55%),
+      var(--ink);
+    font-family:'Inter',sans-serif;
+    color:var(--paper);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+  header{
+    padding:26px 20px 18px;
+    text-align:center;
+  }
+  header .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--paper-faint);
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  header .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--night-glow);box-shadow:0 0 10px var(--night-glow);}
+  header h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:600;
+    font-size:22px;
+    margin:10px 0 4px;
+    letter-spacing:-.01em;
+  }
+  header p{
+    margin:0;
+    font-size:13px;
+    color:var(--paper-dim);
+  }
+
+  .tabs{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    padding:6px 16px 22px;
+    flex-wrap:wrap;
+  }
+  .tab{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    letter-spacing:.03em;
+    padding:9px 16px;
+    border-radius:20px;
+    background:rgba(255,255,255,.06);
+    border:1px solid var(--line);
+    color:var(--paper-dim);
+    cursor:pointer;
+    user-select:none;
+    transition:all .2s ease;
+    white-space:nowrap;
+  }
+  .tab .n{opacity:.55;margin-right:6px;}
+  .tab:hover{background:rgba(255,255,255,.1);color:var(--paper);}
+  .tab.active{
+    background:var(--paper);
+    color:#111319;
+    border-color:var(--paper);
+    font-weight:600;
+  }
+  .tab.active .n{opacity:.5;}
+
+  .frame-wrap{
+    flex:1;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:0 0 40px;
+  }
+  iframe{
+    width:100%;
+    max-width:1100px;
+    height:78vh;
+    min-height:560px;
+    border:none;
+    background:transparent;
+  }
+
+  .desc{
+    max-width:520px;
+    margin:0 auto 8px;
+    text-align:center;
+    font-size:12.5px;
+    color:var(--paper-faint);
+    padding:0 20px;
+    line-height:1.5;
+  }
+
+  footer{
+    text-align:center;
+    padding:16px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    color:var(--paper-faint);
+    letter-spacing:.04em;
+    border-top:1px solid var(--line);
+  }
+  footer a{color:var(--paper-dim);}
+</style>
+</head>
+<body>
+
+  <header>
+    <div class="eyebrow"><span class="dot"></span> Interní test · Městská policie Blansko</div>
+    <h1>Směny — koncepty timeline UI</h1>
+    <p>Tři vývojové verze vedle sebe, pro rychlé porovnání a odsouhlasení směru.</p>
+  </header>
+
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-src="v1.html"><span class="n">01</span>Statický náhled</div>
+    <div class="tab" data-src="v2.html"><span class="n">02</span>Rozklikávací karty</div>
+    <div class="tab" data-src="v3.html"><span class="n">03</span>Celý měsíc + sync panel</div>
+  </div>
+
+  <p class="desc" id="desc">Základní vizuální koncept: dvě karty (denní / noční) pro aktuální den, s náznakem předchozí a následující směny nahoře a dole.</p>
+
+  <div class="frame-wrap">
+    <iframe id="frame" src="v1.html" title="Náhled konceptu"></iframe>
+  </div>
+
+  <footer>
+    smeny-koncept · nasazeno přes GitHub Pages · verze slouží jen jako vizuální prototyp, bez napojení na Google Calendar
+  </footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const frame = document.getElementById('frame');
+  const desc = document.getElementById('desc');
+  const descs = {
+    'v1.html': 'Základní vizuální koncept: dvě karty (denní / noční) pro aktuální den, s náznakem předchozí a následující směny nahoře a dole.',
+    'v2.html': 'Karty jdou rozkliknout — po klepnutí se ukáže kompletní seznam strážníků ve službě daný den, s jejich směnovým kódem.',
+    'v3.html': 'Plně scrollovatelný celý měsíc (62 karet), postranní panel dnů je nezávisle scrollovatelný a obě strany se drží synchronně.'
+  };
+  tabs.forEach(t=>{
+    t.addEventListener('click', ()=>{
+      tabs.forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+      const src = t.dataset.src;
+      frame.src = src;
+      desc.textContent = descs[src];
+    });
+  });
+
+  // allow ?v=1|2|3 to deep-link a version
+  const params = new URLSearchParams(location.search);
+  const v = params.get('v');
+  if(v && ['1','2','3'].includes(v)){
+    const map = {'1':'v1.html','2':'v2.html','3':'v3.html'};
+    const target = map[v];
+    tabs.forEach(t=> t.classList.toggle('active', t.dataset.src === target));
+    frame.src = target;
+    desc.textContent = descs[target];
+  }
+</script>
+</body>
+</html>
