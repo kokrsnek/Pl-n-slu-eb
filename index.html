@@ -32,14 +32,11 @@
     --card-r:26px;
     --sat: max(env(safe-area-inset-top,0px), 14px);
     --sab: max(env(safe-area-inset-bottom,0px), 10px);
-    --app-h: 100dvh;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;height:100%;overscroll-behavior:none;}
   body{
     position:fixed;inset:0;
-    width:100%;
-    height:var(--app-h);
     font-family:'Inter',sans-serif;
     color:var(--paper);
     background:var(--night-1);
@@ -221,14 +218,6 @@
   </div>
 
 <script>
-function setAppHeight(){
-  const h = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
-  document.documentElement.style.setProperty('--app-h', h + 'px');
-}
-setAppHeight();
-window.addEventListener('resize', setAppHeight);
-if(window.visualViewport){ window.visualViewport.addEventListener('resize', setAppHeight); }
-
 const OFFICERS = ["Hlaváček Michal","Šenk Kamil","Tóth Pavel","Sehnal Petr","Přikryl Miroslav","Tóth Ondřej","Menšík Jaroslav","Liška Michal","Havel Radek","Vašíček Zdeněk","Grénar Martin","Chalupa Martin","Tesař Libor","Adámek Jaroslav","Hofman Radek","Parolek Antonín","Juračka Lukáš","Škvařil Libor"];
 const WD = ["ne","po","út","st","čt","pá","so"];
 const MONTHS = ["Leden","Únor","Březen","Duben","Květen","Červen","Červenec","Srpen","Září","Říjen","Listopad","Prosinec"];
