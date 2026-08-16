@@ -136,6 +136,7 @@
     <div class="tab active" data-src="v1.html"><span class="n">01</span>Statický náhled</div>
     <div class="tab" data-src="v2.html"><span class="n">02</span>Rozklikávací karty</div>
     <div class="tab" data-src="v3.html"><span class="n">03</span>Celý měsíc + sync panel</div>
+    <div class="tab" data-src="v4.html"><span class="n">04</span>Náhodná data (bez GCal)</div>
   </div>
 
   <p class="desc" id="desc">Základní vizuální koncept: dvě karty (denní / noční) pro aktuální den, s náznakem předchozí a následující směny nahoře a dole.</p>
@@ -155,7 +156,8 @@
   const descs = {
     'v1.html': 'Základní vizuální koncept: dvě karty (denní / noční) pro aktuální den, s náznakem předchozí a následující směny nahoře a dole.',
     'v2.html': 'Karty jdou rozkliknout — po klepnutí se ukáže kompletní seznam strážníků ve službě daný den, s jejich směnovým kódem.',
-    'v3.html': 'Plně scrollovatelný celý měsíc (62 karet), postranní panel dnů je nezávisle scrollovatelný a obě strany se drží synchronně.'
+    'v3.html': 'Plně scrollovatelný celý měsíc (62 karet), postranní panel dnů je nezávisle scrollovatelný a obě strany se drží synchronně.',
+    'v4.html': 'Stejné UI jako v03, ale bez pevných dat — obsazení směn se generuje náhodně přímo v prohlížeči a jde přepínat mezi měsíci (šipky nahoře). Ikonka ⇄ přegeneruje aktuální měsíc. Zatím bez napojení na Google Calendar.'
   };
   tabs.forEach(t=>{
     t.addEventListener('click', ()=>{
