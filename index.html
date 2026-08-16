@@ -30,13 +30,16 @@
     --paper-dim:rgba(237,234,226,.58);
     --paper-faint:rgba(237,234,226,.32);
     --card-r:26px;
-    --sat:env(safe-area-inset-top,0px);
-    --sab:env(safe-area-inset-bottom,0px);
+    --sat: max(env(safe-area-inset-top,0px), 14px);
+    --sab: max(env(safe-area-inset-bottom,0px), 10px);
+    --app-h: 100dvh;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;height:100%;overscroll-behavior:none;}
   body{
     position:fixed;inset:0;
+    width:100%;
+    height:var(--app-h);
     font-family:'Inter',sans-serif;
     color:var(--paper);
     background:var(--night-1);
@@ -50,40 +53,52 @@
 
   .app-header{
     position:relative;z-index:20;
-    padding:calc(var(--sat) + 14px) 20px 6px;
+    padding:calc(var(--sat) + 10px) 20px 4px;
     display:flex;align-items:flex-start;justify-content:space-between;
+    flex:none;
   }
-  .app-header .title{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:22px;letter-spacing:-.01em;}
-  .app-header .sub{margin-top:4px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;color:var(--paper-dim);}
-  .icon-btn{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.08);cursor:pointer;flex:none;}
-  .icon-btn svg{width:15px;height:15px;stroke:var(--paper);}
+  .app-header .title{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:21px;letter-spacing:-.01em;}
+  .app-header .sub{margin-top:4px;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.06em;color:var(--paper-dim);}
+  .icon-btn{width:33px;height:33px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.08);cursor:pointer;flex:none;}
+  .icon-btn svg{width:14px;height:14px;stroke:var(--paper);}
   .icon-btn:active{transform:scale(.92);}
   .header-icons{display:flex;gap:8px;}
 
   .month-switch{
     position:relative;z-index:20;
     display:flex;align-items:center;justify-content:center;gap:16px;
-    padding:8px 20px 14px;
+    padding:6px 20px 10px;
+    flex:none;
   }
   .month-switch .arrow{
-    width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.07);
+    width:29px;height:29px;border-radius:50%;background:rgba(255,255,255,.07);
     display:flex;align-items:center;justify-content:center;cursor:pointer;
     border:1px solid rgba(255,255,255,.08);
   }
-  .month-switch .arrow svg{width:13px;height:13px;stroke:var(--paper);}
+  .month-switch .arrow svg{width:12px;height:12px;stroke:var(--paper);}
   .month-switch .arrow:active{transform:scale(.9);}
   .month-switch .m-label{
-    font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15.5px;
-    min-width:140px;text-align:center;letter-spacing:-.01em;
+    font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;
+    min-width:138px;text-align:center;letter-spacing:-.01em;
   }
 
-  .timeline-wrap{position:relative;height:calc(100% - 108px - var(--sat));z-index:10;}
-  .timeline{height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;padding:4px 76px 6px 20px;scrollbar-width:none;}
+  .app-col{position:relative;z-index:10;display:flex;flex-direction:column;height:100%;}
+  .timeline-wrap{position:relative;flex:1 1 auto;min-height:0;}
+  .timeline{
+    position:relative;
+    height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;
+    padding:2px 74px calc(var(--sab) + 4px) 20px;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
   .timeline::-webkit-scrollbar{display:none;}
 
   .card{
-    scroll-snap-align:center; border-radius:var(--card-r); margin:8px 0; position:relative;
-    overflow:hidden; box-shadow:0 18px 40px -18px rgba(0,0,0,.55); cursor:pointer; will-change:transform,opacity;
+    scroll-snap-align:center; scroll-snap-stop:always;
+    border-radius:var(--card-r); margin:8px 0; position:relative;
+    overflow:hidden; box-shadow:0 18px 40px -18px rgba(0,0,0,.55); cursor:pointer;
+    transform:translateZ(0);
+    backface-visibility:hidden;
   }
   .card.today{box-shadow:0 22px 50px -16px rgba(0,0,0,.6), 0 0 0 1.5px rgba(237,234,226,.5);}
   .card.open{box-shadow:0 26px 56px -14px rgba(0,0,0,.65), 0 0 0 1.5px rgba(237,234,226,.65);}
@@ -93,25 +108,34 @@
   .card.day::before{content:"";position:absolute;right:-26px;top:-26px;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle at 35% 35%, #fff5d9, transparent 70%);opacity:.85;}
 
   .card-main{padding:22px 22px 18px;position:relative;z-index:2;}
-  .card-top{display:flex;justify-content:space-between;align-items:flex-start;}
+  .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
   .card-date{font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;opacity:.75;}
+  .badges{display:flex;gap:6px;align-items:center;flex:none;}
   .badge-today{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:20px;background:rgba(255,255,255,.16);}
   .card.day .badge-today{background:rgba(90,58,10,.14);}
+  .badge-now{
+    display:flex;align-items:center;gap:5px;
+    font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+    padding:3px 9px 3px 7px;border-radius:20px;background:rgba(255,255,255,.22);
+  }
+  .card.day .badge-now{background:rgba(90,58,10,.2);}
+  .badge-now .pulse{width:5px;height:5px;border-radius:50%;background:#6CFF9E;box-shadow:0 0 6px #6CFF9E;animation:pulse 1.6s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.7);}}
 
-  .card-kind{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:23px;margin-top:10px;letter-spacing:-.01em;}
-  .card-time{margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:14px;display:flex;align-items:center;gap:9px;}
+  .card-kind{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:22px;margin-top:9px;letter-spacing:-.01em;}
+  .card-time{margin-top:7px;font-family:'JetBrains Mono',monospace;font-size:13.5px;display:flex;align-items:center;gap:9px;}
   .card-time .code{font-weight:600;padding:2px 8px;border-radius:7px;background:rgba(255,255,255,.14);font-size:12px;}
   .card.day .card-time .code{background:rgba(90,58,10,.12);}
 
-  .card-foot{margin-top:16px;display:flex;align-items:center;justify-content:space-between;}
+  .card-foot{margin-top:15px;display:flex;align-items:center;justify-content:space-between;}
   .roster-preview{display:flex;align-items:center;gap:10px;}
   .avatars{display:flex;}
-  .avatars .av{width:25px;height:25px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:9.5px;font-weight:600;background:rgba(255,255,255,.22);margin-left:-8px;border:2px solid rgba(0,0,0,.15);}
+  .avatars .av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:9px;font-weight:600;background:rgba(255,255,255,.22);margin-left:-8px;border:2px solid rgba(0,0,0,.15);}
   .card.day .avatars .av{border-color:rgba(255,255,255,.35);background:rgba(90,58,10,.16);color:var(--day-ink);}
   .avatars .av:first-child{margin-left:0;}
-  .count-txt{font-size:11.5px;font-family:'Inter',sans-serif;opacity:.85;}
+  .count-txt{font-size:11px;font-family:'Inter',sans-serif;opacity:.85;}
 
-  .chevron{width:25px;height:25px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.14);transition:transform .3s ease;flex:none;}
+  .chevron{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.14);transition:transform .3s ease;flex:none;}
   .card.day .chevron{background:rgba(90,58,10,.12);}
   .chevron svg{width:11px;height:11px;}
   .card.open .chevron{transform:rotate(180deg);}
@@ -128,16 +152,16 @@
   .officer .rank{font-size:10px;opacity:.6;margin-left:auto;font-family:'JetBrains Mono',monospace;}
 
   .rail{
-    position:absolute; top:0; bottom:0; right:8px; width:58px; z-index:30;
+    position:absolute; top:0; bottom:0; right:8px; width:56px; z-index:30;
     -webkit-mask-image:linear-gradient(180deg, transparent 0, #000 14%, #000 86%, transparent 100%);
             mask-image:linear-gradient(180deg, transparent 0, #000 14%, #000 86%, transparent 100%);
   }
   .rail-line{position:absolute;top:0;bottom:0;left:50%;width:1px;background:rgba(237,234,226,.18);transform:translateX(-50%);}
-  .rail-scroll{height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;display:flex;flex-direction:column;align-items:center;padding:calc(50% - 20px) 0;}
+  .rail-scroll{position:relative;height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;display:flex;flex-direction:column;align-items:center;padding:calc(50% - 20px) 0;-webkit-overflow-scrolling:touch;}
   .rail-scroll::-webkit-scrollbar{display:none;}
-  .rail-day{scroll-snap-align:center;position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:11px 0;cursor:pointer;width:58px;}
-  .rail-dot{width:6px;height:6px;border-radius:50%;background:rgba(237,234,226,.32);transition:all .25s ease;}
-  .rail-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--paper-faint);letter-spacing:.03em;transition:all .25s ease;}
+  .rail-day{scroll-snap-align:center;position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:11px 0;cursor:pointer;width:56px;}
+  .rail-dot{width:6px;height:6px;border-radius:50%;background:rgba(237,234,226,.32);transition:all .2s ease;}
+  .rail-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--paper-faint);letter-spacing:.03em;transition:all .2s ease;}
   .rail-day.active .rail-dot{width:10px;height:10px;background:var(--paper);box-shadow:0 0 14px rgba(237,234,226,.7);}
   .rail-day.active .rail-lbl{color:var(--paper);font-weight:600;font-size:10.5px;}
   .rail-day.today .rail-lbl::after{content:"";display:block;width:3px;height:3px;border-radius:50%;background:var(--day-1);margin:3px auto 0;}
@@ -162,32 +186,34 @@
     <div class="ombre-day" id="ombreDay"></div>
     <div class="grain"></div>
 
-    <div class="app-header">
-      <div>
-        <div class="title">Směny</div>
-        <div class="sub">MĚSTSKÁ POLICIE BLANSKO</div>
-      </div>
-      <div class="header-icons">
-        <div class="icon-btn" id="shuffleBtn" title="Vygenerovat nová data">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+    <div class="app-col">
+      <div class="app-header">
+        <div>
+          <div class="title">Směny</div>
+          <div class="sub">MĚSTSKÁ POLICIE BLANSKO</div>
         </div>
-        <div class="icon-btn" id="todayBtn" title="Skočit na dnešek">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/></svg>
+        <div class="header-icons">
+          <div class="icon-btn" id="shuffleBtn" title="Vygenerovat nová data">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+          </div>
+          <div class="icon-btn" id="todayBtn" title="Skočit na teď">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/></svg>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="month-switch">
-      <div class="arrow" id="prevMonth"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></div>
-      <div class="m-label" id="monthLabel">—</div>
-      <div class="arrow" id="nextMonth"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
-    </div>
+      <div class="month-switch">
+        <div class="arrow" id="prevMonth"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></div>
+        <div class="m-label" id="monthLabel">—</div>
+        <div class="arrow" id="nextMonth"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+      </div>
 
-    <div class="timeline-wrap">
-      <div class="timeline" id="timeline"></div>
-      <div class="rail">
-        <div class="rail-line"></div>
-        <div class="rail-scroll" id="railScroll"></div>
+      <div class="timeline-wrap">
+        <div class="timeline" id="timeline"></div>
+        <div class="rail">
+          <div class="rail-line"></div>
+          <div class="rail-scroll" id="railScroll"></div>
+        </div>
       </div>
     </div>
 
@@ -195,6 +221,14 @@
   </div>
 
 <script>
+function setAppHeight(){
+  const h = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
+  document.documentElement.style.setProperty('--app-h', h + 'px');
+}
+setAppHeight();
+window.addEventListener('resize', setAppHeight);
+if(window.visualViewport){ window.visualViewport.addEventListener('resize', setAppHeight); }
+
 const OFFICERS = ["Hlaváček Michal","Šenk Kamil","Tóth Pavel","Sehnal Petr","Přikryl Miroslav","Tóth Ondřej","Menšík Jaroslav","Liška Michal","Havel Radek","Vašíček Zdeněk","Grénar Martin","Chalupa Martin","Tesař Libor","Adámek Jaroslav","Hofman Radek","Parolek Antonín","Juračka Lukáš","Škvařil Libor"];
 const WD = ["ne","po","út","st","čt","pá","so"];
 const MONTHS = ["Leden","Únor","Březen","Duben","Květen","Červen","Červenec","Srpen","Září","Říjen","Listopad","Prosinec"];
@@ -211,7 +245,6 @@ function pickRandom(pool, n){
   }
   return out;
 }
-
 function nightCode(){
   const r = Math.random();
   if(r < 0.1) return "Nk7";
@@ -219,7 +252,6 @@ function nightCode(){
   return "N12";
 }
 
-// seeded-per-month cache so switching months doesn't reroll every time you revisit
 const monthCache = {};
 function generateMonth(year, monthIdx){
   const key = year+'-'+monthIdx;
@@ -240,6 +272,18 @@ function generateMonth(year, monthIdx){
   return out;
 }
 
+function getActiveShift(d){
+  const h = d.getHours() + d.getMinutes()/60;
+  if(h >= 7 && h < 19){
+    return { year:d.getFullYear(), month:d.getMonth(), day:d.getDate(), kind:'day' };
+  }
+  if(h >= 19){
+    return { year:d.getFullYear(), month:d.getMonth(), day:d.getDate(), kind:'night' };
+  }
+  const prev = new Date(d); prev.setDate(prev.getDate()-1);
+  return { year:prev.getFullYear(), month:prev.getMonth(), day:prev.getDate(), kind:'night' };
+}
+
 const timeline = document.getElementById('timeline');
 const railScroll = document.getElementById('railScroll');
 const ombreDay = document.getElementById('ombreDay');
@@ -247,12 +291,16 @@ const monthLabel = document.getElementById('monthLabel');
 const toastEl = document.getElementById('toast');
 
 const now = new Date();
+const activeNow = getActiveShift(now);
 let viewYear = now.getFullYear();
 let viewMonth = now.getMonth();
 let DAYS = [];
 
 function isRealToday(year, monthIdx, day){
   return year===now.getFullYear() && monthIdx===now.getMonth() && day===now.getDate();
+}
+function isActiveNowCard(year, monthIdx, day, kind){
+  return year===activeNow.year && monthIdx===activeNow.month && day===activeNow.day && kind===activeNow.kind;
 }
 
 function showToast(msg){
@@ -268,6 +316,7 @@ function buildCard(dayObj, kind){
   const time = isDay ? '07:00 – 19:00' : '19:00 – 07:00';
   const kindLabel = isDay ? 'Denní služba' : 'Noční služba';
   const todayFlag = isRealToday(viewYear, viewMonth, dayObj.day);
+  const nowFlag = isActiveNowCard(viewYear, viewMonth, dayObj.day, kind);
   const stroke = isDay ? '#5A3A0A' : '#EDEAE2';
 
   const wrap = document.createElement('div');
@@ -285,11 +334,16 @@ function buildCard(dayObj, kind){
       <div class="rank">${o.code}</div>
     </div>`).join('') || `<div class="officer"><div class="name" style="opacity:.6">Nikdo nemá tento den ${isDay?'denní':'noční'} službu.</div></div>`;
 
+  const badges = `
+    ${nowFlag ? '<div class="badge-now"><span class="pulse"></span>TEĎ</div>' : ''}
+    ${todayFlag && !nowFlag ? '<div class="badge-today">DNES</div>' : ''}
+  `;
+
   wrap.innerHTML = `
     <div class="card-main">
       <div class="card-top">
         <div class="card-date">${dayObj.wd} · ${dayObj.day}. ${viewMonth+1}. ${viewYear}</div>
-        ${todayFlag ? '<div class="badge-today">DNES</div>' : ''}
+        <div class="badges">${badges}</div>
       </div>
       <div class="card-kind">${kindLabel}</div>
       <div class="card-time"><span class="code">${isDay?'D12':'N12'}</span> ${time}</div>
@@ -314,10 +368,30 @@ function buildCard(dayObj, kind){
   return wrap;
 }
 
-let cardEls = [], railEls = [];
+let cardMeta = [];
+let railMeta = [];
+let tlClientH = 0, tlClientCenter = 0;
+let railClientH = 0, railClientCenter = 0;
+
+function measureGeometry(){
+  tlClientH = timeline.clientHeight;
+  tlClientCenter = tlClientH/2;
+  railClientH = railScroll.clientHeight;
+  railClientCenter = railClientH/2;
+
+  cardMeta = Array.from(timeline.children).map(el=>({
+    el, day:+el.dataset.day, kind:el.dataset.kind,
+    center: el.offsetTop + el.offsetHeight/2
+  }));
+  railMeta = Array.from(railScroll.children).map(el=>({
+    el, day:+el.dataset.day,
+    center: el.offsetTop + el.offsetHeight/2
+  }));
+}
+
 let guardMain=false, guardRail=false, guardTimer=null;
 
-function render(anchorDay){
+function render(anchor){
   DAYS = generateMonth(viewYear, viewMonth);
   monthLabel.textContent = `${MONTHS[viewMonth]} ${viewYear}`;
 
@@ -338,140 +412,132 @@ function render(anchorDay){
     railScroll.appendChild(el);
   });
 
-  cardEls = Array.from(timeline.querySelectorAll('.card'));
-  railEls = Array.from(railScroll.querySelectorAll('.rail-day'));
-
-  let anchor = anchorDay;
-  if(!anchor){
-    const hasToday = DAYS.find(d=>isRealToday(viewYear,viewMonth,d.day));
-    anchor = hasToday ? now.getDate() : 1;
+  let anchorDay = anchor && anchor.day, anchorKind = anchor && anchor.kind;
+  if(!anchorDay){
+    const hasActive = viewYear===activeNow.year && viewMonth===activeNow.month;
+    anchorDay = hasActive ? activeNow.day : 1;
+    anchorKind = hasActive ? activeNow.kind : 'day';
   }
+
   requestAnimationFrame(()=>{
-    scrollMainToDay(anchor, false);
-    scrollRailToDay(anchor, false);
-    setTimeout(applyFocusStyles, 50);
+    measureGeometry();
+    scrollMainToDay(anchorDay, false, anchorKind);
+    scrollRailToDay(anchorDay, false);
+    requestAnimationFrame(()=>{ measureGeometry(); applyFocusStyles(); });
   });
 }
 
 function setActiveDay(day){
-  railEls.forEach(el=> el.classList.toggle('active', +el.dataset.day === day));
+  for(const r of railMeta) r.el.classList.toggle('active', r.day===day);
 }
 
-function scrollMainToDay(day, smooth){
-  const el = cardEls.find(c=> +c.dataset.day===day && c.dataset.kind==='day');
-  if(!el) return;
+function scrollMainToDay(day, smooth, kind){
+  kind = kind || 'day';
+  const m = cardMeta.find(c=> c.day===day && c.kind===kind) || cardMeta.find(c=>c.day===day);
+  if(!m) return;
   guardMain = true;
-  el.scrollIntoView({behavior: smooth?'smooth':'auto', block:'center'});
+  const target = m.el.offsetTop + m.el.offsetHeight/2 - tlClientCenter;
+  timeline.scrollTo({top: target, behavior: smooth?'smooth':'auto'});
   setActiveDay(day);
   clearTimeout(guardTimer);
-  guardTimer = setTimeout(()=> guardMain=false, 450);
+  guardTimer = setTimeout(()=> guardMain=false, 420);
 }
 function scrollRailToDay(day, smooth){
-  const el = railEls.find(r=> +r.dataset.day===day);
-  if(!el) return;
+  const m = railMeta.find(r=>r.day===day);
+  if(!m) return;
   guardRail = true;
-  el.scrollIntoView({behavior: smooth?'smooth':'auto', block:'center', inline:'nearest'});
+  const target = m.el.offsetTop + m.el.offsetHeight/2 - railClientCenter;
+  railScroll.scrollTo({top: target, behavior: smooth?'smooth':'auto'});
   clearTimeout(guardTimer);
-  guardTimer = setTimeout(()=> guardRail=false, 450);
-}
-
-function centerMostCard(){
-  const rect = timeline.getBoundingClientRect();
-  const cy = rect.top + rect.height/2;
-  let best=null, bestDist=Infinity;
-  cardEls.forEach(c=>{
-    const r = c.getBoundingClientRect();
-    const cc = r.top + r.height/2;
-    const dist = Math.abs(cc-cy);
-    if(dist<bestDist){bestDist=dist;best=c;}
-  });
-  return best;
+  guardTimer = setTimeout(()=> guardRail=false, 420);
 }
 
 function applyFocusStyles(){
-  const rect = timeline.getBoundingClientRect();
-  const cy = rect.top + rect.height/2;
+  if(!cardMeta.length) return;
+  const viewportCenter = timeline.scrollTop + tlClientCenter;
   let dayWeight=0, totalWeight=0;
-  cardEls.forEach(c=>{
-    const r = c.getBoundingClientRect();
-    const cc = r.top + r.height/2;
-    const dist = Math.abs(cc-cy);
-    const norm = Math.min(1, dist/(rect.height*0.62));
+  let nearestDay=null, nearestDist=Infinity;
+
+  for(const c of cardMeta){
+    const dist = Math.abs(c.center - viewportCenter);
+    const norm = Math.min(1, dist/(tlClientH*0.62));
     const focus = 1-norm;
-    c.style.transform = `scale(${0.88+focus*0.12})`;
-    c.style.opacity = 0.32+focus*0.68;
+    const scale = (0.88+focus*0.12).toFixed(3);
+    const opacity = (0.32+focus*0.68).toFixed(3);
+    if(c.el.dataset.s !== scale){
+      c.el.style.transform = `translateZ(0) scale(${scale})`;
+      c.el.dataset.s = scale;
+    }
+    if(c.el.dataset.o !== opacity){
+      c.el.style.opacity = opacity;
+      c.el.dataset.o = opacity;
+    }
     const w = Math.max(0,focus);
     totalWeight += w;
-    if(c.dataset.kind==='day') dayWeight += w;
-  });
+    if(c.kind==='day') dayWeight += w;
+    if(dist < nearestDist){ nearestDist = dist; nearestDay = c.day; }
+  }
   ombreDay.style.opacity = (totalWeight ? dayWeight/totalWeight : 0.5).toFixed(3);
+  return nearestDay;
 }
 
 let rafPending=false;
 function onMainScroll(){
-  if(!rafPending){
-    rafPending=true;
-    requestAnimationFrame(()=>{
-      applyFocusStyles();
-      if(!guardMain){
-        const c = centerMostCard();
-        if(c){
-          const day = +c.dataset.day;
-          setActiveDay(day);
-          if(!guardRail) scrollRailToDay(day, true);
-        }
-      }
-      rafPending=false;
-    });
-  }
+  if(rafPending) return;
+  rafPending=true;
+  requestAnimationFrame(()=>{
+    const nearestDay = applyFocusStyles();
+    if(!guardMain && nearestDay!=null){
+      setActiveDay(nearestDay);
+      if(!guardRail) scrollRailToDay(nearestDay, true);
+    }
+    rafPending=false;
+  });
 }
+
 let railRaf=false;
 function onRailScroll(){
   if(guardRail) return;
-  if(!railRaf){
-    railRaf=true;
-    requestAnimationFrame(()=>{
-      const rect = railScroll.getBoundingClientRect();
-      const cy = rect.top+rect.height/2;
-      let best=null,bestDist=Infinity;
-      railEls.forEach(el=>{
-        const r = el.getBoundingClientRect();
-        const cc = r.top+r.height/2;
-        const dist = Math.abs(cc-cy);
-        if(dist<bestDist){bestDist=dist;best=el;}
-      });
-      if(best){
-        const day = +best.dataset.day;
-        setActiveDay(day);
-        if(!guardMain) scrollMainToDay(day, true);
-      }
-      railRaf=false;
-    });
-  }
+  if(railRaf) return;
+  railRaf=true;
+  requestAnimationFrame(()=>{
+    const viewportCenter = railScroll.scrollTop + railClientCenter;
+    let best=null, bestDist=Infinity;
+    for(const r of railMeta){
+      const dist = Math.abs(r.center - viewportCenter);
+      if(dist<bestDist){bestDist=dist;best=r;}
+    }
+    if(best){
+      setActiveDay(best.day);
+      if(!guardMain) scrollMainToDay(best.day, true);
+    }
+    railRaf=false;
+  });
 }
 
-timeline.addEventListener('scroll', onMainScroll);
-railScroll.addEventListener('scroll', onRailScroll);
+timeline.addEventListener('scroll', onMainScroll, {passive:true});
+railScroll.addEventListener('scroll', onRailScroll, {passive:true});
+window.addEventListener('resize', ()=> requestAnimationFrame(measureGeometry));
 
 document.getElementById('prevMonth').addEventListener('click', ()=>{
   viewMonth--; if(viewMonth<0){viewMonth=11; viewYear--;}
-  render(1);
+  render({day:1, kind:'day'});
 });
 document.getElementById('nextMonth').addEventListener('click', ()=>{
   viewMonth++; if(viewMonth>11){viewMonth=0; viewYear++;}
-  render(1);
+  render({day:1, kind:'day'});
 });
 document.getElementById('shuffleBtn').addEventListener('click', ()=>{
   delete monthCache[viewYear+'-'+viewMonth];
-  const cur = centerMostCard();
-  const day = cur ? +cur.dataset.day : 1;
-  render(day);
+  const cur = cardMeta.length ? applyFocusStyles() : null;
+  render({day: cur||1, kind:'day'});
   showToast('Obsazení přegenerováno');
 });
 document.getElementById('todayBtn').addEventListener('click', ()=>{
-  const changed = viewYear!==now.getFullYear() || viewMonth!==now.getMonth();
-  viewYear = now.getFullYear(); viewMonth = now.getMonth();
-  if(changed){ render(now.getDate()); } else { scrollMainToDay(now.getDate(), true); scrollRailToDay(now.getDate(), true); }
+  const changed = viewYear!==activeNow.year || viewMonth!==activeNow.month;
+  viewYear = activeNow.year; viewMonth = activeNow.month;
+  if(changed){ render({day:activeNow.day, kind:activeNow.kind}); }
+  else { scrollMainToDay(activeNow.day, true, activeNow.kind); scrollRailToDay(activeNow.day, true); }
 });
 
 render();
