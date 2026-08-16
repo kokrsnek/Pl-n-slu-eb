@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<title>Směny — MP Blansko</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#171F3D">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Směny">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0A0C12;
+    --night-1:#171F3D;
+    --night-2:#2C3A72;
+    --night-3:#4C5FA6;
+    --night-glow:#8FA8FF;
+    --day-1:#F2A93E;
+    --day-2:#FFCD73;
+    --day-ink:#5A3A0A;
+    --paper:#EDEAE2;
+    --paper-dim:rgba(237,234,226,.58);
+    --paper-faint:rgba(237,234,226,.32);
+    --card-r:26px;
+    --sat: max(env(safe-area-inset-top,0px), 14px);
+    --sab: max(env(safe-area-inset-bottom,0px), 10px);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;height:100%;overscroll-behavior:none;}
+  body{
+    position:fixed;inset:0;
+    font-family:'Inter',sans-serif;
+    color:var(--paper);
+    background:var(--night-1);
+    overflow:hidden;
+  }
+  .screen{position:relative;width:100%;height:100%;overflow:hidden;isolation:isolate;}
+
+  .ombre-base{position:absolute;inset:0;background:linear-gradient(180deg,var(--night-1),var(--night-2) 60%,var(--night-1));z-index:0;}
+  .ombre-day{position:absolute;inset:0;background:linear-gradient(180deg,var(--day-1),var(--day-2) 55%,var(--day-1));z-index:0;opacity:0;transition:opacity .18s linear;}
+  .grain{position:absolute;inset:0;z-index:1;pointer-events:none;background-image:radial-gradient(rgba(255,255,255,.035) 1px, transparent 1px);background-size:3px 3px;opacity:.4;}
+
+  .app-header{
+    position:relative;z-index:20;
+    padding:calc(var(--sat) + 10px) 20px 4px;
+    display:flex;align-items:flex-start;justify-content:space-between;
+    flex:none;
+  }
+  .app-header .title{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:21px;letter-spacing:-.01em;}
+  .app-header .sub{margin-top:4px;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.06em;color:var(--paper-dim);}
+  .icon-btn{width:33px;height:33px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.08);cursor:pointer;flex:none;}
+  .icon-btn svg{width:14px;height:14px;stroke:var(--paper);}
+  .icon-btn:active{transform:scale(.92);}
+  .header-icons{display:flex;gap:8px;}
+
+  .month-switch{
+    position:relative;z-index:20;
+    display:flex;align-items:center;justify-content:center;gap:16px;
+    padding:6px 20px 10px;
+    flex:none;
+  }
+  .month-switch .arrow{
+    width:29px;height:29px;border-radius:50%;background:rgba(255,255,255,.07);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+    border:1px solid rgba(255,255,255,.08);
+  }
+  .month-switch .arrow svg{width:12px;height:12px;stroke:var(--paper);}
+  .month-switch .arrow:active{transform:scale(.9);}
+  .month-switch .m-label{
+    font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;
+    min-width:138px;text-align:center;letter-spacing:-.01em;
+  }
+
+  .app-col{position:relative;z-index:10;display:flex;flex-direction:column;height:100%;}
+  .timeline-wrap{position:relative;flex:1 1 auto;min-height:0;}
+  .timeline{
+    position:relative;
+    height:100%;overflow-y:scroll;scroll-snap-type:y proximity;
+    padding:2px 74px calc(var(--sab) + 4px) 20px;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
+  .timeline::-webkit-scrollbar{display:none;}
+
+  .card{
+    scroll-snap-align:center;
+    border-radius:var(--card-r); margin:8px 0; position:relative;
+    overflow:hidden; box-shadow:0 18px 40px -18px rgba(0,0,0,.55); cursor:pointer;
+    transform:translateZ(0);
+    backface-visibility:hidden;
+  }
+  .card.today{box-shadow:0 22px 50px -16px rgba(0,0,0,.6), 0 0 0 1.5px rgba(237,234,226,.5);}
+  .card.open{box-shadow:0 26px 56px -14px rgba(0,0,0,.65), 0 0 0 1.5px rgba(237,234,226,.65);}
+  .card.night{background:linear-gradient(155deg,#232D57 0%, #171E3B 70%); color:var(--paper);}
+  .card.night::before{content:"";position:absolute;right:-30px;top:-30px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle at 30% 30%, var(--night-3), transparent 70%);opacity:.55;}
+  .card.day{background:linear-gradient(155deg,#FFDE9E 0%, #F4AD48 75%); color:var(--day-ink);}
+  .card.day::before{content:"";position:absolute;right:-26px;top:-26px;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle at 35% 35%, #fff5d9, transparent 70%);opacity:.85;}
+
+  .card-main{padding:22px 22px 18px;position:relative;z-index:2;}
+  .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .card-date{font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;opacity:.75;}
+  .badges{display:flex;gap:6px;align-items:center;flex:none;}
+  .badge-today{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:20px;background:rgba(255,255,255,.16);}
+  .card.day .badge-today{background:rgba(90,58,10,.14);}
+  .badge-now{
+    display:flex;align-items:center;gap:5px;
+    font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+    padding:3px 9px 3px 7px;border-radius:20px;background:rgba(255,255,255,.22);
+  }
+  .card.day .badge-now{background:rgba(90,58,10,.2);}
+  .badge-now .pulse{width:5px;height:5px;border-radius:50%;background:#6CFF9E;box-shadow:0 0 6px #6CFF9E;animation:pulse 1.6s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.7);}}
+
+  .card-kind{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:22px;margin-top:9px;letter-spacing:-.01em;}
+  .card-time{margin-top:7px;font-family:'JetBrains Mono',monospace;font-size:13.5px;display:flex;align-items:center;gap:9px;}
+  .card-time .code{font-weight:600;padding:2px 8px;border-radius:7px;background:rgba(255,255,255,.14);font-size:12px;}
+  .card.day .card-time .code{background:rgba(90,58,10,.12);}
+
+  .card-foot{margin-top:15px;display:flex;align-items:center;justify-content:space-between;}
+  .roster-preview{display:flex;align-items:center;gap:10px;}
+  .avatars{display:flex;}
+  .avatars .av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:9px;font-weight:600;background:rgba(255,255,255,.22);margin-left:-8px;border:2px solid rgba(0,0,0,.15);}
+  .card.day .avatars .av{border-color:rgba(255,255,255,.35);background:rgba(90,58,10,.16);color:var(--day-ink);}
+  .avatars .av:first-child{margin-left:0;}
+  .count-txt{font-size:11px;font-family:'Inter',sans-serif;opacity:.85;}
+
+  .chevron{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.14);transition:transform .3s ease;flex:none;}
+  .card.day .chevron{background:rgba(90,58,10,.12);}
+  .chevron svg{width:11px;height:11px;}
+  .card.open .chevron{transform:rotate(180deg);}
+
+  .roster{max-height:0;overflow:hidden;transition:max-height .38s cubic-bezier(.4,0,.2,1);position:relative;z-index:2;}
+  .card.open .roster{max-height:340px;}
+  .roster-inner{padding:2px 22px 20px;border-top:1px solid rgba(255,255,255,.14);margin:0 22px;}
+  .card.day .roster-inner{border-top-color:rgba(90,58,10,.18);}
+  .roster-inner .roster-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;opacity:.6;margin:12px 0 8px;}
+  .officer{display:flex;align-items:center;gap:10px;padding:6px 0;}
+  .officer .av{width:26px;height:26px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:10.5px;font-weight:600;background:rgba(255,255,255,.16);}
+  .card.day .officer .av{background:rgba(90,58,10,.14);}
+  .officer .name{font-size:13px;font-weight:500;}
+  .officer .rank{font-size:10px;opacity:.6;margin-left:auto;font-family:'JetBrains Mono',monospace;}
+
+  .rail{
+    position:absolute; top:0; bottom:0; right:8px; width:56px; z-index:30;
+    -webkit-mask-image:linear-gradient(180deg, transparent 0, #000 14%, #000 86%, transparent 100%);
+            mask-image:linear-gradient(180deg, transparent 0, #000 14%, #000 86%, transparent 100%);
+  }
+  .rail-line{position:absolute;top:0;bottom:0;left:50%;width:1px;background:rgba(237,234,226,.18);transform:translateX(-50%);}
+  .rail-scroll{position:relative;height:100%;overflow-y:scroll;scroll-snap-type:y proximity;scrollbar-width:none;display:flex;flex-direction:column;align-items:center;padding:calc(50% - 20px) 0;-webkit-overflow-scrolling:touch;}
+  .rail-scroll::-webkit-scrollbar{display:none;}
+  .rail-day{scroll-snap-align:center;position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:11px 0;cursor:pointer;width:56px;}
+  .rail-dot{width:6px;height:6px;border-radius:50%;background:rgba(237,234,226,.32);transition:all .2s ease;}
+  .rail-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--paper-faint);letter-spacing:.03em;transition:all .2s ease;}
+  .rail-day.active .rail-dot{width:10px;height:10px;background:var(--paper);box-shadow:0 0 14px rgba(237,234,226,.7);}
+  .rail-day.active .rail-lbl{color:var(--paper);font-weight:600;font-size:10.5px;}
+  .rail-day.today .rail-lbl::after{content:"";display:block;width:3px;height:3px;border-radius:50%;background:var(--day-1);margin:3px auto 0;}
+
+  .toast{
+    position:absolute; left:50%; bottom:calc(18px + var(--sab)); transform:translateX(-50%) translateY(20px);
+    background:rgba(20,22,30,.92); backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,.1);
+    padding:10px 16px; border-radius:16px;
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; letter-spacing:.03em;
+    color:var(--paper); z-index:50; opacity:0; pointer-events:none;
+    transition:all .35s cubic-bezier(.4,0,.2,1);
+    white-space:nowrap;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+  <div class="screen">
+    <div class="ombre-base"></div>
+    <div class="ombre-day" id="ombreDay"></div>
+    <div class="grain"></div>
+
+    <div class="app-col">
+      <div class="app-header">
+        <div>
+          <div class="title">Směny</div>
+          <div class="sub">MĚSTSKÁ POLICIE BLANSKO</div>
+        </div>
+        <div class="header-icons">
+          <div class="icon-btn" id="shuffleBtn" title="Vygenerovat nová data">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+          </div>
+          <div class="icon-btn" id="todayBtn" title="Skočit na teď">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="month-switch">
+        <div class="arrow" id="prevMonth"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></div>
+        <div class="m-label" id="monthLabel">—</div>
+        <div class="arrow" id="nextMonth"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+      </div>
+
+      <div class="timeline-wrap">
+        <div class="timeline" id="timeline"></div>
+        <div class="rail">
+          <div class="rail-line"></div>
+          <div class="rail-scroll" id="railScroll"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+  </div>
+
+<script>
+const OFFICERS = ["Hlaváček Michal","Šenk Kamil","Tóth Pavel","Sehnal Petr","Přikryl Miroslav","Tóth Ondřej","Menšík Jaroslav","Liška Michal","Havel Radek","Vašíček Zdeněk","Grénar Martin","Chalupa Martin","Tesař Libor","Adámek Jaroslav","Hofman Radek","Parolek Antonín","Juračka Lukáš","Škvařil Libor"];
+const WD = ["ne","po","út","st","čt","pá","so"];
+const MONTHS = ["Leden","Únor","Březen","Duben","Květen","Červen","Červenec","Srpen","Září","Říjen","Listopad","Prosinec"];
+
+function initials(name){ const p = name.split(" "); return (p[0][0]+p[1][0]).toUpperCase(); }
+
+function pickRandom(pool, n){
+  const arr = pool.slice();
+  const out = [];
+  n = Math.min(n, arr.length);
+  for(let i=0;i<n;i++){
+    const idx = Math.floor(Math.random()*arr.length);
+    out.push(arr.splice(idx,1)[0]);
+  }
+  return out;
+}
+function nightCode(){
+  const r = Math.random();
+  if(r < 0.1) return "Nk7";
+  if(r < 0.2) return "Nz8";
+  return "N12";
+}
+
+const monthCache = {};
+function generateMonth(year, monthIdx){
+  const key = year+'-'+monthIdx;
+  if(monthCache[key]) return monthCache[key];
+  const daysInMonth = new Date(year, monthIdx+1, 0).getDate();
+  const out = [];
+  for(let day=1; day<=daysInMonth; day++){
+    const wd = WD[new Date(year, monthIdx, day).getDay()];
+    const dCount = 2 + Math.floor(Math.random()*3);
+    const dayList = pickRandom(OFFICERS, dCount).map(n=>({name:n, code:"D12", ini:initials(n)}));
+    const usedNames = dayList.map(o=>o.name);
+    const nightPool = OFFICERS.filter(n=>!usedNames.includes(n));
+    const nCount = 2 + Math.floor(Math.random()*3);
+    const nightList = pickRandom(nightPool, nCount).map(n=>({name:n, code:nightCode(), ini:initials(n)}));
+    out.push({day, wd, day_shift:dayList, night_shift:nightList});
+  }
+  monthCache[key] = out;
+  return out;
+}
+
+function getActiveShift(d){
+  const h = d.getHours() + d.getMinutes()/60;
+  if(h >= 7 && h < 19){
+    return { year:d.getFullYear(), month:d.getMonth(), day:d.getDate(), kind:'day' };
+  }
+  if(h >= 19){
+    return { year:d.getFullYear(), month:d.getMonth(), day:d.getDate(), kind:'night' };
+  }
+  const prev = new Date(d); prev.setDate(prev.getDate()-1);
+  return { year:prev.getFullYear(), month:prev.getMonth(), day:prev.getDate(), kind:'night' };
+}
+
+const timeline = document.getElementById('timeline');
+const railScroll = document.getElementById('railScroll');
+const ombreDay = document.getElementById('ombreDay');
+const monthLabel = document.getElementById('monthLabel');
+const toastEl = document.getElementById('toast');
+
+const now = new Date();
+const activeNow = getActiveShift(now);
+let viewYear = now.getFullYear();
+let viewMonth = now.getMonth();
+let DAYS = [];
+
+function isRealToday(year, monthIdx, day){
+  return year===now.getFullYear() && monthIdx===now.getMonth() && day===now.getDate();
+}
+function isActiveNowCard(year, monthIdx, day, kind){
+  return year===activeNow.year && monthIdx===activeNow.month && day===activeNow.day && kind===activeNow.kind;
+}
+
+function showToast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(()=> toastEl.classList.remove('show'), 1600);
+}
+
+function buildCard(dayObj, kind){
+  const isDay = kind === 'day';
+  const list = isDay ? dayObj.day_shift : dayObj.night_shift;
+  const time = isDay ? '07:00 – 19:00' : '19:00 – 07:00';
+  const kindLabel = isDay ? 'Denní služba' : 'Noční služba';
+  const todayFlag = isRealToday(viewYear, viewMonth, dayObj.day);
+  const nowFlag = isActiveNowCard(viewYear, viewMonth, dayObj.day, kind);
+  const stroke = isDay ? '#5A3A0A' : '#EDEAE2';
+
+  const wrap = document.createElement('div');
+  wrap.className = `card ${kind}${todayFlag ? ' today':''}`;
+  wrap.dataset.day = dayObj.day;
+  wrap.dataset.kind = kind;
+
+  const avatars = list.slice(0,4).map(o=>`<div class="av">${o.ini}</div>`).join('');
+  const countTxt = list.length ? `${list.length} strážníci` : 'nikdo ve službě';
+
+  const officers = list.map(o=>`
+    <div class="officer">
+      <div class="av">${o.ini}</div>
+      <div class="name">${o.name}</div>
+      <div class="rank">${o.code}</div>
+    </div>`).join('') || `<div class="officer"><div class="name" style="opacity:.6">Nikdo nemá tento den ${isDay?'denní':'noční'} službu.</div></div>`;
+
+  const badges = `
+    ${nowFlag ? '<div class="badge-now"><span class="pulse"></span>TEĎ</div>' : ''}
+    ${todayFlag && !nowFlag ? '<div class="badge-today">DNES</div>' : ''}
+  `;
+
+  wrap.innerHTML = `
+    <div class="card-main">
+      <div class="card-top">
+        <div class="card-date">${dayObj.wd} · ${dayObj.day}. ${viewMonth+1}. ${viewYear}</div>
+        <div class="badges">${badges}</div>
+      </div>
+      <div class="card-kind">${kindLabel}</div>
+      <div class="card-time"><span class="code">${isDay?'D12':'N12'}</span> ${time}</div>
+      <div class="card-foot">
+        <div class="roster-preview">
+          <div class="avatars">${avatars}</div>
+          <div class="count-txt">${countTxt}</div>
+        </div>
+        <div class="chevron">
+          <svg viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+      </div>
+    </div>
+    <div class="roster">
+      <div class="roster-inner">
+        <div class="roster-title">Ve službě · ${isDay?'denní':'noční'}</div>
+        ${officers}
+      </div>
+    </div>
+  `;
+  wrap.querySelector('.card-main').addEventListener('click', ()=> wrap.classList.toggle('open'));
+  return wrap;
+}
+
+let cardMeta = [];
+let railMeta = [];
+let tlClientH = 0, tlClientCenter = 0;
+let railClientH = 0, railClientCenter = 0;
+
+function measureGeometry(){
+  tlClientH = timeline.clientHeight;
+  tlClientCenter = tlClientH/2;
+  railClientH = railScroll.clientHeight;
+  railClientCenter = railClientH/2;
+
+  cardMeta = Array.from(timeline.children).map(el=>({
+    el, day:+el.dataset.day, kind:el.dataset.kind,
+    center: el.offsetTop + el.offsetHeight/2
+  }));
+  railMeta = Array.from(railScroll.children).map(el=>({
+    el, day:+el.dataset.day,
+    center: el.offsetTop + el.offsetHeight/2
+  }));
+}
+
+let guardMain=false, guardRail=false;
+let guardMainTimer=null, guardRailTimer=null;
+const supportsScrollEnd = 'onscrollend' in window;
+
+function setGuardMain(on){
+  guardMain = on;
+  clearTimeout(guardMainTimer);
+  if(on) guardMainTimer = setTimeout(()=> guardMain=false, 900); // safety fallback only
+}
+function setGuardRail(on){
+  guardRail = on;
+  clearTimeout(guardRailTimer);
+  if(on) guardRailTimer = setTimeout(()=> guardRail=false, 900); // safety fallback only
+}
+if(supportsScrollEnd){
+  timeline.addEventListener('scrollend', ()=> setGuardMain(false));
+  railScroll.addEventListener('scrollend', ()=> setGuardRail(false));
+}
+
+function render(anchor){
+  DAYS = generateMonth(viewYear, viewMonth);
+  monthLabel.textContent = `${MONTHS[viewMonth]} ${viewYear}`;
+
+  timeline.innerHTML = '';
+  railScroll.innerHTML = '';
+
+  DAYS.forEach(d=>{
+    timeline.appendChild(buildCard(d,'day'));
+    timeline.appendChild(buildCard(d,'night'));
+  });
+  DAYS.forEach(d=>{
+    const el = document.createElement('div');
+    const todayFlag = isRealToday(viewYear, viewMonth, d.day);
+    el.className = 'rail-day' + (todayFlag ? ' today' : '');
+    el.dataset.day = d.day;
+    el.innerHTML = `<div class="rail-dot"></div><div class="rail-lbl">${d.wd} ${d.day}</div>`;
+    el.addEventListener('click', ()=> scrollMainToDay(d.day, true));
+    railScroll.appendChild(el);
+  });
+
+  let anchorDay = anchor && anchor.day, anchorKind = anchor && anchor.kind;
+  if(!anchorDay){
+    const hasActive = viewYear===activeNow.year && viewMonth===activeNow.month;
+    anchorDay = hasActive ? activeNow.day : 1;
+    anchorKind = hasActive ? activeNow.kind : 'day';
+  }
+
+  requestAnimationFrame(()=>{
+    measureGeometry();
+    scrollMainToDay(anchorDay, false, anchorKind);
+    scrollRailToDay(anchorDay, false);
+    requestAnimationFrame(()=>{ measureGeometry(); applyFocusStyles(); });
+  });
+}
+
+function setActiveDay(day){
+  for(const r of railMeta) r.el.classList.toggle('active', r.day===day);
+}
+
+function scrollMainToDay(day, smooth, kind){
+  kind = kind || 'day';
+  const m = cardMeta.find(c=> c.day===day && c.kind===kind) || cardMeta.find(c=>c.day===day);
+  if(!m) return;
+  setGuardMain(true);
+  const target = m.el.offsetTop + m.el.offsetHeight/2 - tlClientCenter;
+  timeline.scrollTo({top: target, behavior: smooth?'smooth':'auto'});
+  setActiveDay(day);
+  if(!smooth || !supportsScrollEnd) setGuardMain(false);
+}
+function scrollRailToDay(day, smooth){
+  const m = railMeta.find(r=>r.day===day);
+  if(!m) return;
+  setGuardRail(true);
+  const target = m.el.offsetTop + m.el.offsetHeight/2 - railClientCenter;
+  railScroll.scrollTo({top: target, behavior: smooth?'smooth':'auto'});
+  if(!smooth || !supportsScrollEnd) setGuardRail(false);
+}
+
+function applyFocusStyles(){
+  if(!cardMeta.length) return;
+  const viewportCenter = timeline.scrollTop + tlClientCenter;
+  let dayWeight=0, totalWeight=0;
+  let nearestDay=null, nearestDist=Infinity;
+
+  for(const c of cardMeta){
+    const dist = Math.abs(c.center - viewportCenter);
+    const norm = Math.min(1, dist/(tlClientH*0.62));
+    const focus = 1-norm;
+    const scale = (0.88+focus*0.12).toFixed(3);
+    const opacity = (0.32+focus*0.68).toFixed(3);
+    if(c.el.dataset.s !== scale){
+      c.el.style.transform = `translateZ(0) scale(${scale})`;
+      c.el.dataset.s = scale;
+    }
+    if(c.el.dataset.o !== opacity){
+      c.el.style.opacity = opacity;
+      c.el.dataset.o = opacity;
+    }
+    const w = Math.max(0,focus);
+    totalWeight += w;
+    if(c.kind==='day') dayWeight += w;
+    if(dist < nearestDist){ nearestDist = dist; nearestDay = c.day; }
+  }
+  ombreDay.style.opacity = (totalWeight ? dayWeight/totalWeight : 0.5).toFixed(3);
+  return nearestDay;
+}
+
+let rafPending=false;
+function onMainScroll(){
+  if(rafPending) return;
+  rafPending=true;
+  requestAnimationFrame(()=>{
+    const nearestDay = applyFocusStyles();
+    if(!guardMain && nearestDay!=null){
+      setActiveDay(nearestDay);
+      if(!guardRail) scrollRailToDay(nearestDay, true);
+    }
+    rafPending=false;
+  });
+}
+
+let railRaf=false;
+function onRailScroll(){
+  if(guardRail) return;
+  if(railRaf) return;
+  railRaf=true;
+  requestAnimationFrame(()=>{
+    const viewportCenter = railScroll.scrollTop + railClientCenter;
+    let best=null, bestDist=Infinity;
+    for(const r of railMeta){
+      const dist = Math.abs(r.center - viewportCenter);
+      if(dist<bestDist){bestDist=dist;best=r;}
+    }
+    if(best){
+      setActiveDay(best.day);
+      if(!guardMain) scrollMainToDay(best.day, true);
+    }
+    railRaf=false;
+  });
+}
+
+timeline.addEventListener('scroll', onMainScroll, {passive:true});
+railScroll.addEventListener('scroll', onRailScroll, {passive:true});
+window.addEventListener('resize', ()=> requestAnimationFrame(measureGeometry));
+
+document.getElementById('prevMonth').addEventListener('click', ()=>{
+  viewMonth--; if(viewMonth<0){viewMonth=11; viewYear--;}
+  render({day:1, kind:'day'});
+});
+document.getElementById('nextMonth').addEventListener('click', ()=>{
+  viewMonth++; if(viewMonth>11){viewMonth=0; viewYear++;}
+  render({day:1, kind:'day'});
+});
+document.getElementById('shuffleBtn').addEventListener('click', ()=>{
+  delete monthCache[viewYear+'-'+viewMonth];
+  const cur = cardMeta.length ? applyFocusStyles() : null;
+  render({day: cur||1, kind:'day'});
+  showToast('Obsazení přegenerováno');
+});
+document.getElementById('todayBtn').addEventListener('click', ()=>{
+  const changed = viewYear!==activeNow.year || viewMonth!==activeNow.month;
+  viewYear = activeNow.year; viewMonth = activeNow.month;
+  if(changed){ render({day:activeNow.day, kind:activeNow.kind}); }
+  else { scrollMainToDay(activeNow.day, true, activeNow.kind); scrollRailToDay(activeNow.day, true); }
+});
+
+render();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
